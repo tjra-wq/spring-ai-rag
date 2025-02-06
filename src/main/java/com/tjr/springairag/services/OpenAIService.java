@@ -5,4 +5,6 @@ import com.tjr.springairag.model.Question;
 
 public interface OpenAIService {
     Answer getAnswer(Question question);
+
+    Answer getTruckAnswer(Question question);
 }
