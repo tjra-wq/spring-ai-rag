@@ -12,7 +12,7 @@ import java.util.List;
 @ConfigurationProperties(prefix = "tjr.aiapp")
 @Getter
 @Setter
-public class VectorStoreProperties {
+public class SimpleVectorStoreProperties {
     private String vectorStorePath;
     private List<Resource> documentsToLoad;
 }

@@ -20,4 +20,9 @@ public class QuestionController {
     public Answer askQuestion(@RequestBody Question question) {
         return openAIService.getAnswer(question);
     }
+
+    @PostMapping("/askAboutAppropriateTruck")
+    public Answer askAboutAppropriateTruck(@RequestBody Question question) {
+        return openAIService.getTruckAnswer(question);
+    }
 }

@@ -3,10 +3,12 @@ package com.tjr.springairag.services;
 import com.tjr.springairag.model.Answer;
 import com.tjr.springairag.model.Question;
 import lombok.RequiredArgsConstructor;
+import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.SimpleVectorStore;
@@ -27,6 +29,9 @@ public class OpenAIServiceImpl implements OpenAIService{
     @Value("classpath:templates/rag-prompt-template-metadata.st")
     private Resource ragPromptTemplate;
 
+    @Value("classpath:templates/system-message.st")
+    private Resource ragSystemMessageTemplate;
+
     @Override
     public Answer getAnswer(Question question) {
         List<Document> documentList = simpleVectorStore.similaritySearch(SearchRequest.builder()
@@ -42,6 +47,26 @@ public class OpenAIServiceImpl implements OpenAIService{
         contentList.forEach(System.out::println);
 
         ChatResponse chatResponse = chatModel.call(prompt);
+        return new Answer(chatResponse.getResult().getOutput().getContent());
+    }
+
+    @Override
+    public Answer getTruckAnswer(Question question) {
+        PromptTemplate systemPromptTemplate = new SystemPromptTemplate(ragSystemMessageTemplate);
+        Message systemMessage = systemPromptTemplate.createMessage();
+
+        List<Document> documentList = simpleVectorStore.similaritySearch(SearchRequest.builder()
+                        .query(question.question())
+                        .topK(4)        //change this to lower number to save on tokens
+                        .build());
+        assert documentList != null;
+        List<String> contentList = documentList.stream().map(Document::getText).toList();
+
+        PromptTemplate responsePromptTemplate = new PromptTemplate(ragPromptTemplate);
+        Message userMessage = responsePromptTemplate.createMessage(Map.of("input", question.question(),
+                "documentList",String.join("\n", contentList)));
+
+        ChatResponse chatResponse = chatModel.call(new Prompt((List.of(systemMessage, userMessage))));
         return new Answer(chatResponse.getResult().getOutput().getContent());
     }
 }

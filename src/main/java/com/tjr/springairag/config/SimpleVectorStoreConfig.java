@@ -16,17 +16,17 @@ import java.util.List;
 @lombok.extern.slf4j.Slf4j
 @Slf4j
 @Configuration
-public class VectorStoreConfig {
+public class SimpleVectorStoreConfig {
 
     @Bean
-    public SimpleVectorStore simpleVectorStore(EmbeddingModel embeddingModel, VectorStoreProperties vectorStoreProperties) {
+    public SimpleVectorStore simpleVectorStore(EmbeddingModel embeddingModel, SimpleVectorStoreProperties simpleVectorStoreProperties) {
         SimpleVectorStore simpleVectorStore = SimpleVectorStore.builder(embeddingModel).build();
-        File vectorStoreFile = new File(vectorStoreProperties.getVectorStorePath());
+        File vectorStoreFile = new File(simpleVectorStoreProperties.getVectorStorePath());
 
         if(vectorStoreFile.exists()) simpleVectorStore.load(vectorStoreFile);
         else {
             log.debug("Loading documents into vector store");
-            vectorStoreProperties.getDocumentsToLoad().forEach(document -> {
+            simpleVectorStoreProperties.getDocumentsToLoad().forEach(document -> {
                 log.debug("Loading document: " + document.getFilename());
                 TikaDocumentReader tikaDocumentReader = new TikaDocumentReader(document);
                 List<Document> docs = tikaDocumentReader.get();
